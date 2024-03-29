@@ -95,7 +95,7 @@
                     this.tableContent = '';
                     this.initialized = true;
                     const systemName = sessionStorage.getItem('systemName');
-                    const systems = await this.fetchSystems();
+                    const systems = await this.fetchSystemsData();
                     const system = systems.find(s => s.name === systemName);
 
                     if (system) {
