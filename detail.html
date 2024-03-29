@@ -62,14 +62,30 @@
 
     <script>
         document.addEventListener('alpine:init', () => {
+
+            Alpine.data('navbarData', () => ({
+                isLoggedIn: false,
+                init() {
+                    // Listen for the custom event
+                    this.$root.addEventListener('auth-change', (event) => {
+                        this.isLoggedIn = event.detail.isLoggedIn;
+                    });
+                }
+            }));
+
             Alpine.data('systemStatusApp', () => ({
                 tableContent: '',
                 system: '{}',
                 initialized: false,
-                isLoggedIn : false,
+                isLoggedIn: false,
 
                 async init() {
-                    if (!this.isLoggedIn) 
+
+                    this.$root.addEventListener('auth-change', (event) => {
+                        this.isLoggedIn = event.detail.isLoggedIn;
+                    });
+
+                    if (!this.isLoggedIn)
                         window.location.href = './index.html';
                     if (this.initialized) return;
 
@@ -163,11 +179,9 @@
         // Listen for authentication state changes
         firebase.auth().onAuthStateChanged((user) => {
             const isLoggedIn = !!user;
-            document.querySelectorAll('[x-data]').forEach((component) => {
-                if (component.__x && 'isLoggedIn' in component.__x.$data) {
-                    component.__x.$data.isLoggedIn = isLoggedIn;
-                }
-            });
+            document.dispatchEvent(new CustomEvent('auth-change', {
+                detail: { isLoggedIn }
+            }));
         });
     </script>
 

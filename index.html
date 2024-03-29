@@ -16,7 +16,7 @@
 
 <body>
 
-    <div x-data="{ isLoggedIn: false }">
+    <div x-data="c" x-init="init()">
         <div class="container mx-auto px-4">
             <div class="navbar bg-base-100">
                 <div class="navbar-start">
@@ -146,13 +146,9 @@
         // Listen for authentication state changes
         firebase.auth().onAuthStateChanged((user) => {
             const isLoggedIn = !!user;
-            console.log('auth state changed');
-            console.log(isLoggedIn);
-            document.querySelectorAll('[x-data]').forEach((component) => {
-                if (component.__x && 'isLoggedIn' in component.__x.$data) {
-                    component.__x.$data.isLoggedIn = isLoggedIn;
-                }
-            });
+            document.dispatchEvent(new CustomEvent('auth-change', {
+                detail: { isLoggedIn }
+            }));
         });
 
         document.getElementById('logoutButton').addEventListener('click', function () {
@@ -168,7 +164,19 @@
     </script>
 
     <script type="text/javascript">
+
         document.addEventListener('alpine:init', () => {
+
+            Alpine.data('navbarData', () => ({
+                isLoggedIn: false,
+                init() {
+                    // Listen for the custom event
+                    this.$root.addEventListener('auth-change', (event) => {
+                        this.isLoggedIn = event.detail.isLoggedIn;
+                    });
+                }
+            }));
+
             Alpine.data('systemData', () => ({
                 listView: false,
                 searchTerm: '',
@@ -179,6 +187,11 @@
                 isLoggedIn: false,
                 lastUpdated: '',
                 init() {
+
+                    this.$root.addEventListener('auth-change', (event) => {
+                        this.isLoggedIn = event.detail.isLoggedIn;
+                    });
+
                     if (this.isLoggedIn) {
                         this.fetchSystemsData().then(data => {
                             this.systems = data;
