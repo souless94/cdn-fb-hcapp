@@ -67,8 +67,10 @@
                 isLoggedIn: false,
                 init() {
                     // Listen for the custom event
+                    this.isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
                     this.$root.addEventListener('auth-change', (event) => {
                         this.isLoggedIn = event.detail.isLoggedIn;
+                        sessionStorage.setItem('isLoggedIn', isLoggedIn);
                     });
                 }
             }));
@@ -80,8 +82,10 @@
                 isLoggedIn: false,
 
                 async init() {
+                    this.isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
                     this.$root.addEventListener('auth-change', (event) => {
                         this.isLoggedIn = event.detail.isLoggedIn;
+                        sessionStorage.setItem('isLoggedIn', isLoggedIn);
                     });
 
                     if (!this.isLoggedIn)
