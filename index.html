@@ -146,6 +146,8 @@
         // Listen for authentication state changes
         firebase.auth().onAuthStateChanged((user) => {
             const isLoggedIn = !!user;
+            console.log('auth state changed');
+            console.log(isLoggedIn);
             document.querySelectorAll('[x-data]').forEach((component) => {
                 if (component.__x && 'isLoggedIn' in component.__x.$data) {
                     component.__x.$data.isLoggedIn = isLoggedIn;
