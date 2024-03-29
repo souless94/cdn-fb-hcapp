@@ -1,0 +1,33 @@
+[
+    {
+        "id": "1",
+        "name": "astro blog",
+        "status": "Online",
+        "group": "main page",
+        "checks": [
+            {
+              "name": "Service 1",
+              "url": "./systems.json",
+              "status": "Online"
+            }
+          ]
+    },
+    {
+      "id": "2",
+      "name": "astro blog sample post",
+      "status": "Online",
+      "group": "Posts page",
+      "checks": [
+          {
+            "name": "Service 1",
+            "url": "./systems.json",
+            "status": "Online"
+          },
+          {
+            "name": "Service 2",
+            "url": "./systems.json",
+            "status": "Online"
+          }
+        ]
+  }
+]
