@@ -172,7 +172,7 @@
                 isLoggedIn: false,
                 init() {
                     // Listen for the custom event
-                    this.isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+                    this.isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
                     this.$root.addEventListener('auth-change', (event) => {
                         this.isLoggedIn = event.detail.isLoggedIn;
                         sessionStorage.setItem('isLoggedIn', isLoggedIn);
@@ -191,7 +191,7 @@
                 lastUpdated: '',
                 init() {
                     // Listen for the custom event
-                    this.isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+                    this.isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
                     this.$root.addEventListener('auth-change', (event) => {
                         this.isLoggedIn = event.detail.isLoggedIn;
                         sessionStorage.setItem('isLoggedIn', isLoggedIn);
