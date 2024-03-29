@@ -127,12 +127,14 @@
         firebase.initializeApp(firebaseConfig);
         // FirebaseUI config.
         var uiConfig = {
+            signInFlow: 'popup',
             signInOptions: [
                 // Leave the lines as is for the providers you want to offer your users.
                 firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-
-            ]
+            ],
+            signInSuccessUrl: './index.html'
         };
+
 
         // Initialize the FirebaseUI Widget using Firebase.
         var ui = new firebaseui.auth.AuthUI(firebase.auth());
