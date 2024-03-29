@@ -1,0 +1,175 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.3/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.7/dist/cdn.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/ui/6.1.0/firebase-ui-auth.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.1.0/firebase-ui-auth.css" />
+    <title>HealthCheck App</title>
+</head>
+
+<body>
+    <div x-data="{ isLoggedIn: false }">
+        <div class="container mx-auto px-4">
+            <div class="navbar bg-base-100">
+                <div class="navbar-start">
+                    <a href="./index.html" class="btn btn-sm btn-ghost">
+                        <i class="fas fa-leaf mr-2" aria-hidden="true"></i>
+                        <span class="sr-only">Dashboard</span> cdn-fb-hcapp
+                    </a>
+                </div>
+                <div class="navbar-end">
+                    <div x-show="isLoggedIn">
+                        <a id="logoutButton" class="btn btn-sm btn-outline btn-error hover:bg-red-700 hover:text-white">
+                            <i class="fas fa-sign-out-alt mr-2" aria-hidden="true"></i>
+                            <span class="sr-only">Logout</span> Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="divider py-0 my-0"></div>
+
+    <div class="container mx-auto px-4">
+        <div x-data="systemStatusApp" x-init="init()">
+            <h2 x-text="system.name"></h2>
+            <h2 x-text="system.status"></h2>
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            checks Name
+                        </th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200" x-html="tableContent">
+                    <!-- Rows will be inserted here by Alpine.js -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('systemStatusApp', () => ({
+                tableContent: '',
+                system: '{}',
+                initialized: false,
+                isLoggedIn : false,
+
+                async init() {
+                    if (!this.isLoggedIn) 
+                        window.location.href = './index.html';
+                    if (this.initialized) return;
+
+                    this.tableContent = '';
+                    this.initialized = true;
+                    const systemName = sessionStorage.getItem('systemName');
+                    const systems = await this.fetchSystems();
+                    const system = systems.find(s => s.name === systemName);
+
+                    if (system) {
+                        this.system = system;
+                        await this.checkSystemStatus(system);
+                    }
+                },
+                async fetchSystemsData() {
+                    try {
+                        const response = await fetch('./systems.json');
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        const data = await response.json();
+                        this.lastUpdated = new Date().toLocaleString();
+                        return data;
+                    } catch (error) {
+                        console.error('There has been a problem with your fetch operation:', error);
+                        return [];
+                    }
+                },
+                async checkSystemStatus(system) {
+                    let isAnyCheckOffline = false; // Flag to track if any check is offline
+                    this.tableContent = '';
+                    for (const check of system.checks) {
+                        try {
+                            const response = await fetch(check.url);
+                            if (!response.ok) {
+                                // If the response status is not OK, mark the check as offline
+                                check.status = 'Offline';
+                                isAnyCheckOffline = true;
+                            } else {
+                                // If the response status is OK, mark the check as online
+                                check.status = 'Online';
+                            }
+                        } catch (error) {
+                            console.error(`Error fetching ${check.url}:`, error);
+                            check.status = 'Offline';
+                            isAnyCheckOffline = true;
+                        }
+                    }
+                    // Update system status based on the checks
+                    system.status = isAnyCheckOffline ? 'Offline' : 'Online';
+                    // Now, update the table with all checks
+                    system.checks.forEach(check => {
+                        this.updateTable(check.name, check.status);
+                    });
+                },
+
+                updateTable(checkName, status) {
+                    this.rowCounter = (this.rowCounter || 0) + 1;
+                    this.tableContent += `<tr>
+        <td class="px-6 py-4 whitespace-nowrap">${this.rowCounter}</td>
+        <td class="px-6 py-4 whitespace-nowrap">${checkName}</td>
+        <td class="px-6 py-4 whitespace-nowrap">${status}</td>
+    </tr>`;
+                }
+            }));
+        });
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBe5yNOc1hTU17m0AV7rGVLyv-rq02QjAM",
+            authDomain: "cdn-fb-hcapp.firebaseapp.com",
+            projectId: "cdn-fb-hcapp",
+            storageBucket: "cdn-fb-hcapp.appspot.com",
+            messagingSenderId: "658365079712",
+            appId: "1:658365079712:web:59bc12b00767c867d269c5"
+        };
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        // FirebaseUI config.
+        var uiConfig = {
+            signInOptions: [
+                // Leave the lines as is for the providers you want to offer your users.
+                firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+
+            ]
+        };
+
+        const componentsToUpdate = document.querySelectorAll('[x-data]');
+
+        // Listen for authentication state changes
+        firebase.auth().onAuthStateChanged((user) => {
+            const isLoggedIn = !!user;
+            document.querySelectorAll('[x-data]').forEach((component) => {
+                if (component.__x && 'isLoggedIn' in component.__x.$data) {
+                    component.__x.$data.isLoggedIn = isLoggedIn;
+                }
+            });
+        });
+    </script>
+
+</body>
+
+</html>

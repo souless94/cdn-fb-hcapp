@@ -1,0 +1,248 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.3/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.7/dist/cdn.min.js"></script>
+    <script src="https://kit.fontawesome.com/a461c29f3d.js" crossorigin="anonymous"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/ui/6.1.0/firebase-ui-auth.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.1.0/firebase-ui-auth.css" />
+    <title>HealthCheck App</title>
+</head>
+
+<body>
+
+    <div x-data="{ isLoggedIn: false }">
+        <div class="container mx-auto px-4">
+            <div class="navbar bg-base-100">
+                <div class="navbar-start">
+                    <a href="./index.html" class="btn btn-sm btn-ghost">
+                        <i class="fas fa-leaf mr-2" aria-hidden="true"></i>
+                        <span class="sr-only">Dashboard</span> cdn-fb-hcapp
+                    </a>
+                </div>
+                <div class="navbar-end">
+                    <div x-show="isLoggedIn">
+                        <a id="logoutButton" class="btn btn-sm btn-outline btn-error hover:bg-red-700 hover:text-white">
+                            <i class="fas fa-sign-out-alt mr-2" aria-hidden="true"></i>
+                            <span class="sr-only">Logout</span> Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="divider py-0 my-0"></div>
+    <!-- Main content -->
+    <div class="flex-1 overflow-auto">
+        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 ">
+            <!-- Cards container -->
+            <div x-data="systemData" x-init="init()" class="flex-1 overflow-auto">
+                <!-- Search input -->
+                <div x-show="isLoggedIn">
+                    <div class="px-4 py-2">
+                        <input x-model="searchTerm" type="text" placeholder="Search systems..."
+                            class="input input-bordered w-full max-w-xs" />
+                    </div>
+                    <!-- Status Filter Dropdown -->
+                    <!-- Filters Container -->
+                    <div class="px-4 py-2 flex space-x-4">
+                        <!-- Status Filter Dropdown -->
+                        <div>
+                            <select x-model="selectedStatus" class="select select-bordered select-sm w-full max-w-xs">
+                                <option value="">All Statuses</option>
+                                <option value="Online">Online</option>
+                                <option value="Offline">Offline</option>
+                                <option value="Maintenance">Maintenance</option>
+                            </select>
+                        </div>
+                        <!-- Group Filter Dropdown -->
+                        <div>
+                            <select x-model="selectedGroup" class="select select-bordered select-sm w-full max-w-xs">
+                                <option value="">All Groups</option>
+                                <template x-for="group in [...new Set(systems.map(system => system.group))]"
+                                    :key="group">
+                                    <option x-text="group"></option>
+                                </template>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Toggle View Button -->
+                    <div class="px-4 py-2">
+                        <button @click="listView = !listView" class="btn btn-info">
+                            <span x-text="listView ? 'Grid View' : 'List View'"></span>
+                        </button>
+                        <button @click="checkAllSystemsStatus()" class="btn btn-secondary">Refresh Data</button>
+                        <!-- Display Last Updated Time -->
+                        <div class="px-4 py-2">
+                            <span>Last Updated: <span x-text="lastUpdated"></span></span>
+                        </div>
+                    </div>
+                    <div x-show="fetchError" class="text-red-500">
+                        Unable to fetch data. Please try again later.
+                    </div>
+                    <!-- Cards container -->
+                    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                        <div :class="listView ? 'flex flex-col gap-4' : 'grid md:grid-cols-2 lg:grid-cols-3 gap-4'">
+                            <!-- Dynamically add cards here -->
+                            <template x-for="system in filteredAndSortedSystems" :key="system.id">
+                                <div x-show="searchTerm === '' || system.name.toLowerCase().includes(searchTerm.toLowerCase())"
+                                    class="card bg-base-100 shadow-xl border border-info"
+                                    :class="listView ? 'flex flex-row' : ''">
+                                    <div class="card-body">
+                                        <h2 class="card-title" x-text="system.name"></h2>
+                                        <p>Status: <span x-text="system.status"></span></p>
+                                        <div class="card-actions justify-end">
+                                            <button class="btn btn-primary"
+                                                @click="goToDetailPage(system.name)">Details</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+                <div x-show="!isLoggedIn">
+                    <h2>please login</h2>
+                    <div id="firebaseui-auth-container"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <script type="text/javascript">
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBe5yNOc1hTU17m0AV7rGVLyv-rq02QjAM",
+            authDomain: "cdn-fb-hcapp.firebaseapp.com",
+            projectId: "cdn-fb-hcapp",
+            storageBucket: "cdn-fb-hcapp.appspot.com",
+            messagingSenderId: "658365079712",
+            appId: "1:658365079712:web:59bc12b00767c867d269c5"
+        };
+        firebase.initializeApp(firebaseConfig);
+        // FirebaseUI config.
+        var uiConfig = {
+            signInOptions: [
+                // Leave the lines as is for the providers you want to offer your users.
+                firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+
+            ]
+        };
+
+        // Initialize the FirebaseUI Widget using Firebase.
+        var ui = new firebaseui.auth.AuthUI(firebase.auth());
+        // The start method will wait until the DOM is loaded.
+        ui.start('#firebaseui-auth-container', uiConfig);
+
+        const componentsToUpdate = document.querySelectorAll('[x-data]');
+
+        // Listen for authentication state changes
+        firebase.auth().onAuthStateChanged((user) => {
+            const isLoggedIn = !!user;
+            document.querySelectorAll('[x-data]').forEach((component) => {
+                if (component.__x && 'isLoggedIn' in component.__x.$data) {
+                    component.__x.$data.isLoggedIn = isLoggedIn;
+                }
+            });
+        });
+
+        document.getElementById('logoutButton').addEventListener('click', function () {
+            firebase.auth().signOut().then(() => {
+                console.log('User signed out successfully');
+                window.location.href = './index.html';
+            }).catch((error) => {
+                console.error('Sign Out Error', error);
+                // Handle errors here, such as displaying a notification to the user
+            });
+        });
+
+    </script>
+
+    <script type="text/javascript">
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('systemData', () => ({
+                listView: false,
+                searchTerm: '',
+                selectedGroup: '',
+                selectedStatus: '',
+                systems: [],
+                fetchError: false,
+                isLoggedIn: false,
+                lastUpdated: '',
+                init() {
+                    if (this.isLoggedIn) {
+                        this.fetchSystemsData().then(data => {
+                            this.systems = data;
+                            this.checkAllSystemsStatus();
+                            this.fetchError = false;
+                        }).catch(error => {
+                            this.fetchError = true;
+                        });
+                    } else {
+                        this.systems = [];
+                        this.fetchError = false; // Reset fetchError
+                    }
+                },
+                async fetchSystemsData() {
+                    try {
+                        const response = await fetch('./systems.json');
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        const data = await response.json();
+                        this.lastUpdated = new Date().toLocaleString();
+                        return data;
+                    } catch (error) {
+                        console.error('There has been a problem with your fetch operation:', error);
+                        return [];
+                    }
+                },
+                async checkAllSystemsStatus() {
+                    for (const system of this.systems) {
+                        let isAnyCheckOffline = false;
+                        for (const check of system.checks) {
+                            try {
+                                const response = await fetch(check.url);
+                                if (!response.ok) {
+                                    check.status = 'Offline';
+                                    isAnyCheckOffline = true;
+                                } else {
+                                    check.status = 'Online';
+                                }
+                            } catch (error) {
+                                console.error(`Error fetching ${check.url}:`, error);
+                                check.status = 'Offline';
+                                isAnyCheckOffline = true;
+                            }
+                        }
+                        system.status = isAnyCheckOffline ? 'Offline' : 'Online';
+                    }
+                    return this.systems;
+                },
+
+                get filteredAndSortedSystems() {
+                    return this.systems
+                        .filter(system => (this.selectedGroup === '' || system.group === this.selectedGroup) && (this.selectedStatus === '' || system.status === this.selectedStatus))
+                        .sort((a, b) => {
+                            if (a.status === 'Offline') return -1;
+                            if (b.status === 'Offline') return 1;
+                            return 0;
+                        });
+                },
+                goToDetailPage(systemName) {
+                    sessionStorage.setItem('systemName', systemName);
+                    window.location.href = './detail.html';
+                },
+            }));
+        });
+    </script>
+    </script>
+
+</body>
+
+</html>
