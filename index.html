@@ -187,11 +187,6 @@
                 isLoggedIn: false,
                 lastUpdated: '',
                 init() {
-
-                    this.$root.addEventListener('auth-change', (event) => {
-                        this.isLoggedIn = event.detail.isLoggedIn;
-                    });
-
                     if (this.isLoggedIn) {
                         this.fetchSystemsData().then(data => {
                             this.systems = data;

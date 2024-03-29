@@ -81,10 +81,6 @@
 
                 async init() {
 
-                    this.$root.addEventListener('auth-change', (event) => {
-                        this.isLoggedIn = event.detail.isLoggedIn;
-                    });
-
                     if (!this.isLoggedIn)
                         window.location.href = './index.html';
                     if (this.initialized) return;
