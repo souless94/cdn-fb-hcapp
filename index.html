@@ -229,6 +229,8 @@
                         for (const check of system.checks) {
                             try {
                                 const response = await fetch(check.url);
+                                console.log("refreshing data");
+                                this.lastUpdated = new Date().toLocaleString();
                                 if (!response.ok) {
                                     check.status = 'Offline';
                                     isAnyCheckOffline = true;
