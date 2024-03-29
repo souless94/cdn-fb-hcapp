@@ -107,7 +107,8 @@
                     </div>
                 </div>
                 <div x-show="!isLoggedIn">
-                    <h2>please login</h2>
+                    <h2 class="text-2xl font-bold mb-4 flex items-center"><i
+                            class="fas fa-sign-in-alt mr-2 text-primary"></i> Log in to Access Your Dashboard</h2>
                     <div id="firebaseui-auth-container"></div>
                 </div>
             </div>
@@ -153,14 +154,19 @@
         });
 
         document.getElementById('logoutButton').addEventListener('click', function () {
-            firebase.auth().signOut().then(() => {
-                console.log('User signed out successfully');
-                window.location.href = './index.html';
-            }).catch((error) => {
-                console.error('Sign Out Error', error);
-                // Handle errors here, such as displaying a notification to the user
-            });
+            const confirmLogout = confirm("Are you sure you want to logout?");
+            if (confirmLogout) {
+                firebase.auth().signOut().then(() => {
+                    console.log('User signed out successfully');
+                    sessionStorage.clear();
+                    window.location.href = './index.html';
+                }).catch((error) => {
+                    console.error('Sign Out Error', error);
+                    // Handle errors here, such as displaying a notification to the user
+                });
+            }
         });
+
 
     </script>
 
