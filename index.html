@@ -131,7 +131,8 @@
             signInOptions: [
                 // Leave the lines as is for the providers you want to offer your users.
                 firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-            ]
+            ],
+            signInSuccessUrl: './index.html'
         };
 
 
@@ -145,8 +146,7 @@
         // Listen for authentication state changes
         firebase.auth().onAuthStateChanged((user) => {
             const isLoggedIn = !!user;
-            console.log('auth change');
-            console.log(isLoggedIn);
+            sessionStorage.setItem('isLoggedIn', isLoggedIn);
             document.dispatchEvent(new CustomEvent('auth-change', {
                 detail: { isLoggedIn }
             }));
@@ -172,11 +172,10 @@
                 isLoggedIn: false,
                 init() {
                     // Listen for the custom event
+                    this.isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
                     this.$root.addEventListener('auth-change', (event) => {
-                        console.log('auth change');
-                        console.log(this.isLoggedIn);
-                        console.log(event);
                         this.isLoggedIn = event.detail.isLoggedIn;
+                        sessionStorage.setItem('isLoggedIn', isLoggedIn);
                     });
                 }
             }));
@@ -191,11 +190,11 @@
                 isLoggedIn: false,
                 lastUpdated: '',
                 init() {
+                    // Listen for the custom event
+                    this.isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
                     this.$root.addEventListener('auth-change', (event) => {
-                        console.log('auth change');
-                        console.log(this.isLoggedIn);
-                        console.log(event);
                         this.isLoggedIn = event.detail.isLoggedIn;
+                        sessionStorage.setItem('isLoggedIn', isLoggedIn);
                     });
                     if (this.isLoggedIn) {
                         this.fetchSystemsData().then(data => {
