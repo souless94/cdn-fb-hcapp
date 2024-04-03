@@ -16,104 +16,131 @@
 
 <body>
 
-    <div x-data="navbarData" x-init="init()">
-        <div class="container mx-auto px-4">
-            <div class="navbar bg-base-100">
-                <div class="navbar-start">
-                    <a href="./index.html" class="btn btn-sm btn-ghost">
-                        <i class="fas fa-leaf mr-2" aria-hidden="true"></i>
-                        <span class="sr-only">Dashboard</span> cdn-fb-hcapp
-                    </a>
-                </div>
-                <div class="navbar-end">
-                    <div x-show="isLoggedIn">
-                        <a id="logoutButton" class="btn btn-sm btn-outline btn-error hover:bg-red-700 hover:text-white">
-                            <i class="fas fa-sign-out-alt mr-2" aria-hidden="true"></i>
-                            <span class="sr-only">Logout</span> Logout
+    <div x-data="{ isLoggedIn: false }" x-init="isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true'">
+        <!-- Section shown only when the user is not logged in -->
+        <div x-show="!isLoggedIn">
+            <div class="container mx-auto px-4">
+                <div class="navbar bg-base-100">
+                    <div class="navbar-start">
+                        <a href="./index.html" class="btn btn-sm btn-ghost">
+                            <i class="fas fa-leaf mr-2" aria-hidden="true"></i>
+                            <span class="sr-only">Dashboard</span> cdn-fb-hcapp
                         </a>
+                    </div>
+                    <div class="navbar-end">
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-    <div class="divider py-0 my-0"></div>
-    <!-- Main content -->
-    <div class="flex-1 overflow-auto">
-        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 ">
-            <!-- Cards container -->
-            <div x-data="systemData" x-init="init()" class="flex-1 overflow-auto">
-                <!-- Search input -->
-                <div x-show="isLoggedIn">
-                    <div class="px-4 py-2">
-                        <input x-model="searchTerm" type="text" placeholder="Search systems..."
-                            class="input input-bordered w-full max-w-xs" />
-                    </div>
-                    <!-- Status Filter Dropdown -->
-                    <!-- Filters Container -->
-                    <div class="px-4 py-2 flex space-x-4">
-                        <!-- Status Filter Dropdown -->
-                        <div>
-                            <select x-model="selectedStatus" class="select select-bordered select-sm w-full max-w-xs">
-                                <option value="">All Statuses</option>
-                                <option value="Online">Online</option>
-                                <option value="Offline">Offline</option>
-                                <option value="Maintenance">Maintenance</option>
-                            </select>
-                        </div>
-                        <!-- Group Filter Dropdown -->
-                        <div>
-                            <select x-model="selectedGroup" class="select select-bordered select-sm w-full max-w-xs">
-                                <option value="">All Groups</option>
-                                <template x-for="group in [...new Set(systems.map(system => system.group))]"
-                                    :key="group">
-                                    <option x-text="group"></option>
-                                </template>
-                            </select>
-                        </div>
-                    </div>
-                    <!-- Toggle View Button -->
-                    <div class="px-4 py-2">
-                        <button @click="listView = !listView" class="btn btn-info">
-                            <span x-text="listView ? 'Grid View' : 'List View'"></span>
-                        </button>
-                        <button @click="checkAllSystemsStatus()" class="btn btn-info">Refresh Data</button>
-                        <!-- Display Last Updated Time -->
-                        <div class="px-4 py-2">
-                            <span>Last Updated: <span x-text="lastUpdated"></span></span>
-                        </div>
-                    </div>
-                    <div x-show="fetchError" class="text-red-500">
-                        Unable to fetch data. Please try again later.
-                    </div>
+            <div class="flex-1 overflow-auto">
+                <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 ">
                     <!-- Cards container -->
-                    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-                        <div :class="listView ? 'flex flex-col gap-4' : 'grid md:grid-cols-2 lg:grid-cols-3 gap-4'">
-                            <!-- Dynamically add cards here -->
-                            <template x-for="system in filteredAndSortedSystems" :key="system.id">
-                                <div x-show="searchTerm === '' || system.name.toLowerCase().includes(searchTerm.toLowerCase())"
-                                    class="card bg-base-100 shadow-xl border border-info"
-                                    :class="listView ? 'flex flex-row' : ''">
-                                    <div class="card-body">
-                                        <h2 class="card-title" x-text="system.name"></h2>
-                                        <p>Status: <span x-text="system.status"></span></p>
-                                        <div class="card-actions justify-end">
-                                            <button class="btn btn-sm btn-outline btn-primary"
-                                                @click="goToDetailPage(system.name)">Details</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
+                    <div class="flex-1 overflow-auto">
+                        <h2 class="text-2xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-sign-in-alt mr-2 text-primary"></i> Log in to Access Your Dashboard
+                        </h2>
+                        <div id="firebaseui-auth-container"></div>
                     </div>
-                </div>
-                <div x-show="!isLoggedIn">
-                    <h2 class="text-2xl font-bold mb-4 flex items-center"><i
-                            class="fas fa-sign-in-alt mr-2 text-primary"></i> Log in to Access Your Dashboard</h2>
-                    <div id="firebaseui-auth-container"></div>
                 </div>
             </div>
         </div>
 
+        <div x-show="isLoggedIn">
+            <div x-data="navbarData" x-init="init()">
+                <div class="container mx-auto px-4">
+                    <div class="navbar bg-base-100">
+                        <div class="navbar-start">
+                            <a href="./index.html" class="btn btn-sm btn-ghost">
+                                <i class="fas fa-leaf mr-2" aria-hidden="true"></i>
+                                <span class="sr-only">Dashboard</span> cdn-fb-hcapp
+                            </a>
+                        </div>
+                        <div class="navbar-end">
+                            <a id="logoutButton"
+                                class="btn btn-sm btn-outline btn-error hover:bg-red-700 hover:text-white">
+                                <i class="fas fa-sign-out-alt mr-2" aria-hidden="true"></i>
+                                <span class="sr-only">Logout</span> Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="divider py-0 my-0"></div>
+            <!-- Main content -->
+            <div class="flex-1 overflow-auto">
+                <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 ">
+                    <!-- Cards container -->
+                    <div x-data="systemData" x-init="init()" class="flex-1 overflow-auto">
+                        <!-- Search input -->
+                        <div x-show="isLoggedIn">
+                            <div class="px-4 py-2">
+                                <input x-model="searchTerm" type="text" placeholder="Search systems..."
+                                    class="input input-bordered w-full max-w-xs" />
+                            </div>
+                            <!-- Status Filter Dropdown -->
+                            <!-- Filters Container -->
+                            <div class="px-4 py-2 flex space-x-4">
+                                <!-- Status Filter Dropdown -->
+                                <div>
+                                    <select x-model="selectedStatus"
+                                        class="select select-bordered select-sm w-full max-w-xs">
+                                        <option value="">All Statuses</option>
+                                        <option value="Online">Online</option>
+                                        <option value="Offline">Offline</option>
+                                        <option value="Maintenance">Maintenance</option>
+                                    </select>
+                                </div>
+                                <!-- Group Filter Dropdown -->
+                                <div>
+                                    <select x-model="selectedGroup"
+                                        class="select select-bordered select-sm w-full max-w-xs">
+                                        <option value="">All Groups</option>
+                                        <template x-for="group in [...new Set(systems.map(system => system.group))]"
+                                            :key="group">
+                                            <option x-text="group"></option>
+                                        </template>
+                                    </select>
+                                </div>
+                            </div>
+                            <!-- Toggle View Button -->
+                            <div class="px-4 py-2">
+                                <button @click="listView = !listView" class="btn btn-info">
+                                    <span x-text="listView ? 'Grid View' : 'List View'"></span>
+                                </button>
+                                <button @click="checkAllSystemsStatus()" class="btn btn-info">Refresh Data</button>
+                                <!-- Display Last Updated Time -->
+                                <div class="px-4 py-2">
+                                    <span>Last Updated: <span x-text="lastUpdated"></span></span>
+                                </div>
+                            </div>
+                            <div x-show="fetchError" class="text-red-500">
+                                Unable to fetch data. Please try again later.
+                            </div>
+                            <!-- Cards container -->
+                            <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                                <div
+                                    :class="listView ? 'flex flex-col gap-4' : 'grid md:grid-cols-2 lg:grid-cols-3 gap-4'">
+                                    <!-- Dynamically add cards here -->
+                                    <template x-for="system in filteredAndSortedSystems" :key="system.id">
+                                        <div x-show="searchTerm === '' || system.name.toLowerCase().includes(searchTerm.toLowerCase())"
+                                            class="card bg-base-100 shadow-xl border border-info"
+                                            :class="listView ? 'flex flex-row' : ''">
+                                            <div class="card-body">
+                                                <h2 class="card-title" x-text="system.name"></h2>
+                                                <p>Status: <span x-text="system.status"></span></p>
+                                                <div class="card-actions justify-end">
+                                                    <button class="btn btn-sm btn-outline btn-primary"
+                                                        @click="goToDetailPage(system.name)">Details</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     <script type="text/javascript">
 
@@ -141,8 +168,6 @@
         var ui = new firebaseui.auth.AuthUI(firebase.auth());
         // The start method will wait until the DOM is loaded.
         ui.start('#firebaseui-auth-container', uiConfig);
-
-        const componentsToUpdate = document.querySelectorAll('[x-data]');
 
         // Listen for authentication state changes
         firebase.auth().onAuthStateChanged((user) => {
